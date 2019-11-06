@@ -13,7 +13,7 @@ function formatQueryParams(params){
 
 function getNationalParks(query, maxResults=10){
     const params={
-        q: query,
+        stateCode: query,
         limit: maxResults,
         api_key: apiKey,
     };
@@ -28,12 +28,19 @@ function getNationalParks(query, maxResults=10){
 function fetchURL(url){
     fetch(url)
     .then(response => {
+        console.log(response);
         if(response.ok){
            return response.json();
         }
         throw new Error(response.statusText);
     })
-    .then(responseJson => displayResults(responseJson))
+    .then(responseJson => {
+        console.log(responseJson)
+        if(responseJson.data.length===0){
+            throw new Error('Incorrect Input');
+        }
+        displayResults(responseJson)
+    })
     .catch(err => {
         $('#js-search-error').text(`Something went wrong: ${err.message}`);
     }); 
@@ -41,7 +48,10 @@ function fetchURL(url){
 
 function displayResults(responseJson){
     console.log(responseJson);
+    
     $('#results-list').empty();
+    $('#js-search-error').text("");
+  
 
     for(let i=0; i<responseJson.data.length; i++){
         $('#results-list').append(`
@@ -54,6 +64,7 @@ function displayResults(responseJson){
 
     $('#results').removeClass('hidden');
     
+    
 }
 
 function watchForm(){
@@ -64,7 +75,11 @@ function watchForm(){
         console.log(nationalPark);
         const maxResults = $('#max-results').val();
         console.log(maxResults);
-        getNationalParks(nationalPark, maxResults);
+        if(maxResults<=50 && maxResults>=1){
+         getNationalParks(nationalPark, maxResults);
+        }else{
+            throw alert('Input a number between 1 and 50');
+        }
     } )
    
 }
